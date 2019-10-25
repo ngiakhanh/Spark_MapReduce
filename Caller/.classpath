@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8"/>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/learnSpark"/>
+	<classpathentry kind="lib" path="C:/Users/GNG04/Desktop/eclipse/plugins/org.scala-ide.scala211.jars_4.7.1.201801021322/target/jars/scala-compiler.jar"/>
+	<classpathentry kind="lib" path="C:/Users/GNG04/Desktop/eclipse/plugins/org.scala-ide.scala211.jars_4.7.1.201801021322/target/jars/scala-compiler-src.jar"/>
+	<classpathentry kind="lib" path="C:/Users/GNG04/Desktop/eclipse/plugins/org.scala-ide.scala211.jars_4.7.1.201801021322/target/jars/scala-library.jar"/>
+	<classpathentry kind="lib" path="C:/Users/GNG04/Desktop/eclipse/plugins/org.scala-ide.scala211.jars_4.7.1.201801021322/target/jars/scala-library-src.jar"/>
+	<classpathentry kind="lib" path="C:/Users/GNG04/Desktop/eclipse/plugins/org.scala-ide.scala211.jars_4.7.1.201801021322/target/jars/scala-reflect.jar"/>
+	<classpathentry kind="lib" path="C:/Users/GNG04/Desktop/eclipse/plugins/org.scala-ide.scala211.jars_4.7.1.201801021322/target/jars/scala-reflect-src.jar"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>
