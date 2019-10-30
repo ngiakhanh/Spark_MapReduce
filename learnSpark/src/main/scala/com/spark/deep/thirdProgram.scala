@@ -1,5 +1,6 @@
 package main.scala.com.spark.deep
 
+import java.util.Properties;
 import java.time.Duration;
 import java.time.Instant;
 import java.io.File 
@@ -10,6 +11,7 @@ import java.io.PrintWriter
 import java.io.FileOutputStream
 
 import org.apache.kafka.clients.consumer.ConsumerRecord
+import org.apache.kafka.clients.producer._
 import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.spark.streaming.kafka010._
 import org.apache.spark.streaming.kafka010.LocationStrategies.PreferConsistent
@@ -18,16 +20,25 @@ import org.apache.spark.streaming.kafka010.ConsumerStrategies.Subscribe
 import org.apache.spark._
 import org.apache.spark.streaming._
 
-import scala.collection.JavaConverters._
-
 import org.apache.spark.sql.SparkSession
 
 object thirdProgram {
+  def writeToKafka(topic: String, value: String): Unit = {
+    val props = new Properties()
+    props.put("bootstrap.servers", "localhost:9092")
+    props.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer")
+    props.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer")
+    val producer = new KafkaProducer[String, String](props)
+    val record = new ProducerRecord[String, String](topic, "key", value)
+    producer.send(record)
+    producer.close()
+  }
   def main(args: Array[String]): Unit={
         val input = args(0)
         val output = "output"
         val fileName = "results.txt"
         val text = StringBuilder.newBuilder
+        val mongo = StringBuilder.newBuilder
         Logger.getLogger("org").setLevel(Level.ERROR)
         
         System.out.println("Working directory: "+System.getProperty("user.dir"));
@@ -50,37 +61,40 @@ object thirdProgram {
         
         val sc = new SparkContext(conf)
         val ssc = new StreamingContext(sc, Seconds(1))
-        
-        //val spark = SparkSession
-                    //.builder()
-                    //.appName("Spark structured streaming Kafka example")
-                    //.master("local[*]")
-                    //.getOrCreate()
-        //import spark.implicits._
+        /*
+        val spark = SparkSession
+                    .builder()
+                    .appName("Spark structured streaming Kafka example")
+                    .master("local[*]")
+                    .getOrCreate()
+        spark.sparkContext.setLogLevel("ERROR")
+        import spark.implicits._
                     
-        //val df = spark
-                //.readStream
-                //.format("kafka")
-                //.option("kafka.bootstrap.servers", "localhost:9092")
-                //.option("subscribe", "test")
-                //.option("startingOffsets", "earliest")
-                //.load()
-        //df.selectExpr("CAST(key AS STRING)", "CAST(value AS STRING)")
-          //.as[(String, String)]
-        //df.writeStream
-          //.format("console")
-          //.option("truncate","false")
-          //.start()
-          //.awaitTermination()
+        val df = spark
+                .readStream
+                .format("kafka")
+                .option("kafka.bootstrap.servers", "localhost:9092")
+                .option("value.deserializer","org.apache.kafka.common.serialization.StringDeserializer")
+                .option("subscribe", "test")
+                .option("startingOffsets", "earliest")
+                .load()
+        df.selectExpr("CAST(key AS STRING)", "CAST(value AS STRING)")
+          .as[(String, String)]
         
+        df.writeStream
+          .format("console")
+          .outputMode("append")
+          .start()
+          .awaitTermination()
+        */
         
         val kafkaParams = Map[String, Object](
-        "bootstrap.servers" -> "localhost:9092",
-        "key.deserializer" -> classOf[StringDeserializer],
-        "value.deserializer" -> classOf[StringDeserializer],
-        "group.id" -> "test1",
-        "auto.offset.reset" -> "earliest",
-        "enable.auto.commit" -> (false: java.lang.Boolean)
+          "bootstrap.servers" -> "localhost:9092",
+          "key.deserializer" -> classOf[StringDeserializer],
+          "value.deserializer" -> classOf[StringDeserializer],
+          "group.id" -> "test1",
+          "auto.offset.reset" -> "latest",
+          "enable.auto.commit" -> (false: java.lang.Boolean)
         )
 
         val topic = Array("test")
@@ -92,6 +106,7 @@ object thirdProgram {
         )
         
         val lines = kafkaRawStream.map(consumerRecord => consumerRecord.value)
+        
         val words = lines.flatMap(line => line.split(" "))
 
         val wordMap = words.map(word => (word, 1))
@@ -106,8 +121,10 @@ object thirdProgram {
           if (rdd.count() > 0){
             //rdd.keys.foreach(println)
             text.setLength(0)
+            mongo.setLength(0)
             rdd.collect().foreach(a=>{
                 text.append(a.toString()+"\n")
+                mongo.append(a.toString()+"\n")
             })
             text.append("-----------\n")
             println(text)
@@ -116,12 +133,16 @@ object thirdProgram {
             print_Writer.write(text.toString())
             
             //Close printwriter 
-            print_Writer.close() 
+            print_Writer.close()
+            writeToKafka("mongo", mongo.toString())
+            
           }
         })
         
         ssc.start()
         ssc.awaitTermination()
+        
+        
         
         //val stream = KafkaUtils.createDirectStream[String, String](
           //ssc,
